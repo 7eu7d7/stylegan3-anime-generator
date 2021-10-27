@@ -88,7 +88,7 @@ def get_plugin(module_name, sources, headers=None, source_dir=None, **build_kwar
         # break the build or unnecessarily restrict what's available to nvcc.
         # Unset it to let nvcc decide based on what's available on the
         # machine.
-        os.environ['TORCH_CUDA_ARCH_LIST'] = ''
+        os.environ['TORCH_CUDA_ARCH_LIST'] = '8.0'
 
         # Incremental build md5sum trickery.  Copies all the input source files
         # into a cached build directory under a combined md5 digest of the input

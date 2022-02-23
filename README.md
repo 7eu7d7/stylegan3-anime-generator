@@ -8,7 +8,7 @@
 </p>
 
 ## Introduction
-The code is based on the official implementation[stylegan3](https://github.com/NVlabs/stylegan3), with some details modified.
+The code is based on the official implementation [stylegan3](https://github.com/NVlabs/stylegan3), with some details modified.
 
 Using a large number of full body anime character images to train which get an anime character generator.
 
@@ -30,7 +30,7 @@ The resolution of the dataset is 1024x1024.
 
 Dataset links: (Ali cloud disk has restrictions on sharing, so it is spread over two cloud disks)
 * [LoliHouse Dataset p1](https://www.aliyundrive.com/s/Et1Xagopriw) Parts other than .z01 and .zip
-* [LoliHouse Dataset p2]() .z01 and .zip
+* [LoliHouse Dataset p2](https://pan.xunlei.com/s/VMwanpwJcTsHEZ2PX58aWNjRA1) .z01 and .zip **code: qay7**
 
 Original image package:
 [LoliHouse](magnet:?xt=urn:btih:756e909170575bef7ac767222cc6c356c213c726&tr=http://open.acgtracker.com:1096/announce)

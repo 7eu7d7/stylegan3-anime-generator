@@ -43,7 +43,7 @@ def layout_grid(img, grid_w=None, grid_h=1, float_to_uint8=True, chw_to_hwc=True
 
 #----------------------------------------------------------------------------
 
-def gen_interp_video(G, mp4: str, seeds, shuffle_seed=None, w_frames=60*4, kind='cubic', grid_dims=(1,1), num_keyframes=None, wraps=2, psi=1, device=torch.device('cuda'), video_size=None, **video_kwargs):
+def gen_interp_video(G, mp4: str, seeds, shuffle_seed=None, w_frames=60*4, kind='cubic', grid_dims=(1,1), num_keyframes=None, wraps=2, psi=1, device=torch.device('cuda'), video_size=None, stay=30, **video_kwargs):
     grid_w = grid_dims[0]
     grid_h = grid_dims[1]
 
@@ -87,14 +87,16 @@ def gen_interp_video(G, mp4: str, seeds, shuffle_seed=None, w_frames=60*4, kind=
                 img = G.synthesis(ws=w.unsqueeze(0), noise_mode='const')[0]
                 imgs.append(img)
         frame = layout_grid(torch.stack(imgs), grid_w=grid_w, grid_h=grid_h)
-        if video_size is None:
-            video_out.append_data(frame)
-        else:
+        if video_size is not None:
             assert video_size[0]>=frame.shape[1]
             assert video_size[1]>=frame.shape[0]
 
             w_pad, h_pad = (video_size[0]-frame.shape[1])//2, (video_size[1]-frame.shape[0])//2
             frame = np.pad(frame, ((h_pad, h_pad), (w_pad, w_pad), (0,0)), 'constant')
+        if frame_idx%w_frames ==0:
+            for i in range(stay):
+                video_out.append_data(frame)
+        else:
             video_out.append_data(frame)
     video_out.close()
 
@@ -136,7 +138,7 @@ def parse_tuple(s: Union[str, Tuple[int,int]]) -> Tuple[int, int]:
 @click.command()
 @click.option('--network', 'network_pkl', help='Network pickle filename', required=True)
 @click.option('--seeds', type=parse_range, help='List of random seeds', required=False)
-@click.option('--seeds_file', type=parse_range, help='List of random seeds', required=False)
+@click.option('--seeds_file', type=str, help='List of random seeds', required=False)
 @click.option('--shuffle-seed', type=int, help='Random seed to use for shuffling seed order', default=None)
 @click.option('--grid', type=parse_tuple, help='Grid width/height, e.g. \'4x3\' (default: 1x1)', default=(1,1))
 @click.option('--video_size', type=parse_tuple, help='Grid width/height, e.g. \'4x3\' (default: 1x1)', default=None)
@@ -192,6 +194,8 @@ def generate_images(
 #----------------------------------------------------------------------------
 
 #python gen_video.py --output=lerp.mp4 --trunc=1 --seeds=2,18,24,55 --grid=2x1 --video_size=1280x720 --network=weights/network-snapshot-010200.pkl
+#python gen_video.py --output=loli.mp4 --trunc=1 --seeds_file=./loli_seeds_2048.txt --grid=3x2 --video_size=1920x1080 --network=/data2/dzy/stylegan3/training-runs/00013-stylegan3-r-loli_nb-512x512-gpus4-batch32-gamma8/network-snapshot-010800.pkl
+#python gen_video.py --output=loli2.mp4 --trunc=1 --seeds_file=./loli_seeds.txt --grid=2x1 --video_size=1280x720 --network=/data2/dzy/stylegan3/training-runs/00013-stylegan3-r-loli_nb-512x512-gpus4-batch32-gamma8/network-snapshot-010800.pkl
 if __name__ == "__main__":
     generate_images() # pylint: disable=no-value-for-parameter
 

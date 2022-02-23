@@ -9,6 +9,11 @@
 """Train a GAN using the techniques described in the paper
 "Alias-Free Generative Adversarial Networks"."""
 
+#CUDA_VISIBLE_DEVICES=3,4,5,6 python train.py --outdir=./training-runs --cfg=stylegan3-r --data=../loli_nb-1024x1024.zip --gpus=4 --batch=16 --mbstd-group=4 --gamma=64 --mirror=1 --kimg=15000 --snap=20
+#python train.py --outdir=./training-runs --cfg=stylegan3-r --data=../loli-1024x1024.zip --gpus=4 --batch=32 --mbstd-group=4 --gamma=6.6 --mirror=1 --kimg=25000 --snap=20 --resume=./weights/stylegan3-r-ffhqu-1024x1024.pkl
+#CUDA_VISIBLE_DEVICES=3,4,5,6 python train.py --outdir=./training-runs --cfg=stylegan2 --data=../loli_nb-256x256.zip --gpus=4 --batch=64 --gamma=0.2048 --map-depth=2 --glr=0.0025 --dlr=0.0025 --cbase=16384 --kimg=25000 --snap=20
+
+
 import os
 import click
 import re

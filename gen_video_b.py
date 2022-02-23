@@ -43,7 +43,7 @@ def layout_grid(img, grid_w=None, grid_h=1, float_to_uint8=True, chw_to_hwc=True
 
 #----------------------------------------------------------------------------
 
-def gen_interp_video(G, mp4: str, seeds, shuffle_seed=None, w_frames=60*4, kind='cubic', grid_dims=(1,1), num_keyframes=None, wraps=2, psi=1, device=torch.device('cuda'), video_size=None, **video_kwargs):
+def gen_interp_video(G, mp4: str, seeds, shuffle_seed=None, w_frames=60*4, kind='cubic', grid_dims=(1,1), num_keyframes=None, wraps=2, psi=1, device=torch.device('cuda'), **video_kwargs):
     grid_w = grid_dims[0]
     grid_h = grid_dims[1]
 
@@ -86,16 +86,8 @@ def gen_interp_video(G, mp4: str, seeds, shuffle_seed=None, w_frames=60*4, kind=
                 w = torch.from_numpy(interp(frame_idx / w_frames)).to(device)
                 img = G.synthesis(ws=w.unsqueeze(0), noise_mode='const')[0]
                 imgs.append(img)
-        frame = layout_grid(torch.stack(imgs), grid_w=grid_w, grid_h=grid_h)
-        if video_size is None:
-            video_out.append_data(frame)
-        else:
-            assert video_size[0]>=frame.shape[1]
-            assert video_size[1]>=frame.shape[0]
-
-            w_pad, h_pad = (video_size[0]-frame.shape[1])//2, (video_size[1]-frame.shape[0])//2
-            frame = np.pad(frame, ((h_pad, h_pad), (w_pad, w_pad), (0,0)), 'constant')
-            video_out.append_data(frame)
+        frame=torch.stack(imgs)
+        video_out.append_data(layout_grid(frame, grid_w=grid_w, grid_h=grid_h))
     video_out.close()
 
 #----------------------------------------------------------------------------
@@ -138,7 +130,6 @@ def parse_tuple(s: Union[str, Tuple[int,int]]) -> Tuple[int, int]:
 @click.option('--seeds', type=parse_range, help='List of random seeds', required=True)
 @click.option('--shuffle-seed', type=int, help='Random seed to use for shuffling seed order', default=None)
 @click.option('--grid', type=parse_tuple, help='Grid width/height, e.g. \'4x3\' (default: 1x1)', default=(1,1))
-@click.option('--video_size', type=parse_tuple, help='Grid width/height, e.g. \'4x3\' (default: 1x1)', default=None)
 @click.option('--num-keyframes', type=int, help='Number of seeds to interpolate through.  If not specified, determine based on the length of the seeds array given by --seeds.', default=None)
 @click.option('--w-frames', type=int, help='Number of frames to interpolate between latents', default=120)
 @click.option('--trunc', 'truncation_psi', type=float, help='Truncation psi', default=1, show_default=True)
@@ -149,7 +140,6 @@ def generate_images(
     shuffle_seed: Optional[int],
     truncation_psi: float,
     grid: Tuple[int,int],
-    video_size: Tuple[int,int],
     num_keyframes: Optional[int],
     w_frames: int,
     output: str
@@ -181,11 +171,10 @@ def generate_images(
     with dnnlib.util.open_url(network_pkl) as f:
         G = legacy.load_network_pkl(f)['G_ema'].to(device) # type: ignore
 
-    gen_interp_video(G=G, mp4=output, bitrate='12M', grid_dims=grid, num_keyframes=num_keyframes, w_frames=w_frames, seeds=seeds, shuffle_seed=shuffle_seed, video_size=video_size, psi=truncation_psi)
+    gen_interp_video(G=G, mp4=output, bitrate='12M', grid_dims=grid, num_keyframes=num_keyframes, w_frames=w_frames, seeds=seeds, shuffle_seed=shuffle_seed, psi=truncation_psi)
 
 #----------------------------------------------------------------------------
 
-#python gen_video.py --output=lerp.mp4 --trunc=1 --seeds=2,18,24,55 --grid=2x1 --video_size=1280x720 --network=weights/network-snapshot-010200.pkl
 if __name__ == "__main__":
     generate_images() # pylint: disable=no-value-for-parameter
 

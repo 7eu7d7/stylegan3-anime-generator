@@ -135,7 +135,8 @@ def parse_tuple(s: Union[str, Tuple[int,int]]) -> Tuple[int, int]:
 
 @click.command()
 @click.option('--network', 'network_pkl', help='Network pickle filename', required=True)
-@click.option('--seeds', type=parse_range, help='List of random seeds', required=True)
+@click.option('--seeds', type=parse_range, help='List of random seeds', required=False)
+@click.option('--seeds_file', type=parse_range, help='List of random seeds', required=False)
 @click.option('--shuffle-seed', type=int, help='Random seed to use for shuffling seed order', default=None)
 @click.option('--grid', type=parse_tuple, help='Grid width/height, e.g. \'4x3\' (default: 1x1)', default=(1,1))
 @click.option('--video_size', type=parse_tuple, help='Grid width/height, e.g. \'4x3\' (default: 1x1)', default=None)
@@ -146,6 +147,7 @@ def parse_tuple(s: Union[str, Tuple[int,int]]) -> Tuple[int, int]:
 def generate_images(
     network_pkl: str,
     seeds: List[int],
+    seeds_file: str,
     shuffle_seed: Optional[int],
     truncation_psi: float,
     grid: Tuple[int,int],
@@ -180,6 +182,10 @@ def generate_images(
     device = torch.device('cuda')
     with dnnlib.util.open_url(network_pkl) as f:
         G = legacy.load_network_pkl(f)['G_ema'].to(device) # type: ignore
+
+    if seeds_file is not None:
+        with open(seeds_file) as f:
+            seeds=[int(x.strip()) for x in f.readlines()]
 
     gen_interp_video(G=G, mp4=output, bitrate='12M', grid_dims=grid, num_keyframes=num_keyframes, w_frames=w_frames, seeds=seeds, shuffle_seed=shuffle_seed, video_size=video_size, psi=truncation_psi)
 
